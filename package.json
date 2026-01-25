@@ -1,0 +1,16 @@
+{
+  "name": "reward-oneself",
+  "version": "1.0.0",
+  "description": "**软件名称：** 奖励自己",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests/unit.spec.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.58.0",
+    "puppeteer": "^24.36.0"
+  }
+}
