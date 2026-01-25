@@ -59,11 +59,6 @@
             </div>
         </div>
     </div>
-    <footer class="mt-4">
-        <p>本页面的计时器提示音是：自制手机铃声 许可:CC-BY 作者:scottchains 来源:耳聆网 https://www.ear0.com/sound/37361</p>
-        <p>本页面的完成音效是：完成音效 许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432</p>
-    </footer>
-
     <!-- 引入 NoSleep.js -->
     <script src="js/NoSleep.min.js"></script>
     <script src="js/storage.js"></script>
@@ -106,10 +101,55 @@
                 console.error('NoSleep 启动失败：', error);
             }
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            console.log('准备 resume AudioContext...');
             audioContext.resume().then(() => {
-                console.log('音频上下文已解锁');
+                console.log('音频上下文已解锁，状态:', audioContext.state);
                 document.getElementById('audio-prompt').style.display = 'none';
+                
+                // 测试音频播放
+                console.log('创建测试音频对象...');
+                const testAudio = new Audio("assets/finish.mp3");
+                testAudio.volume = 0.5;
+                
+                testAudio.oncanplay = () => {
+                    console.log('音频文件可以播放');
+                };
+                
+                testAudio.onerror = (e) => {
+                    console.error('音频加载错误:', e);
+                };
+                
+                testAudio.onloadstart = () => {
+                    console.log('开始加载音频');
+                };
+                
+                testAudio.onloadeddata = () => {
+                    console.log('音频数据已加载');
+                };
+                
+                testAudio.load();
+                console.log('load() 已调用');
+                
+                // 播放测试音
+                console.log('准备播放测试音频...');
+                const playPromise = testAudio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('测试音频播放成功');
+                        testAudio.pause();
+                        testAudio.currentTime = 0;
+                    }).catch(e => {
+                        console.error('测试音频播放失败:', e);
+                    });
+                } else {
+                    console.log('play() 返回 undefined');
+                }
+            }).catch(e => {
+                console.error('AudioContext resume 失败:', e);
             });
+            
             document.body.removeEventListener('click', unlockAudio);
         }
         document.body.addEventListener('click', unlockAudio);
@@ -128,25 +168,25 @@
             currentTime = isWorking ? workTime * 60 : restTime * 60;
             document.getElementById('status').textContent = isWorking ? '工作中' : '休息中';
 
-            // 休息阶段开始时播放音频
+            // 休息阶段开始时播放音频（阻塞式）
             if (!isWorking && restTime > 0) {
-                const audio = new Audio("assets/timer.wav");
-                if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume().then(() => audio.play());
-                } else {
-                    audio.play().catch(error => {
-                        console.error('音频播放失败:', error);
-                    });
-                }
+                const audio = new Audio("assets/timer.mp3");
+                audio.play().catch(error => {
+                    console.error('音频播放失败:', error);
+                });
             }
         }
 
         // 倒计时结束处理
         function handleFinish() {
             clearInterval(timerInterval);
+            console.log('handleFinish 被调用 - 当前阶段: ' + (isWorking ? '工作' : '休息'));
+            
             if (isWorking) {
+                console.log('工作阶段结束，休息时间: ' + restTime + ' 分钟');
                 // 工作结束后切换到休息
                 if (restTime > 0) {
+                    console.log('切换到休息阶段');
                     switchPhase();
                     timerInterval = setInterval(() => {
                         currentTime--;
@@ -155,15 +195,96 @@
                     }, 1000);
                 } else {
                     // 无休息时间直接完成
-                    completeTask();
+                    console.log('无休息时间，直接完成任务');
+                    
+                    // 播放完成音效
+                    console.log('准备播放完成音效...');
+                    const finishAudio = new Audio("assets/finish.mp3");
+                    finishAudio.volume = 1.0;
+                    
+                    function playAudioBlocking() {
+                        return new Promise((resolve, reject) => {
+                            console.log('开始播放完成音效...');
+                            
+                            finishAudio.onended = () => {
+                                console.log('完成音效播放完毕');
+                                resolve();
+                            };
+                            
+                            finishAudio.onerror = (e) => {
+                                console.error('完成音效播放错误:', e);
+                                resolve();
+                            };
+                            
+                            finishAudio.play().then(() => {
+                                console.log('play() 方法调用成功');
+                            }).catch(error => {
+                                console.error('完成音效播放失败:', error);
+                                resolve();
+                            });
+                        });
+                    }
+                    
+                    playAudioBlocking().then(() => {
+                        completeTask();
+                    });
                 }
             } else {
-                // 休息结束，播放完成音效
-                const finishAudio = new Audio("assets/finish.wav");
-                finishAudio.play().then(() => {
-                    completeTask();
-                }).catch(error => {
-                    console.error('完成音效播放失败:', error);
+                // 休息结束，播放完成音效（阻塞式）
+                console.log('准备播放完成音效...');
+                const finishAudio = new Audio("assets/finish.mp3");
+                finishAudio.volume = 1.0;
+                
+                function playAudioBlocking() {
+                    return new Promise((resolve, reject) => {
+                        console.log('开始播放完成音效...');
+                        
+                        finishAudio.onended = () => {
+                            console.log('完成音效播放完毕');
+                            resolve();
+                        };
+                        
+                        finishAudio.onerror = (e) => {
+                            console.error('完成音效播放错误:', e);
+                            resolve(); // 即使失败也继续
+                        };
+                        
+                        finishAudio.oncanplay = () => {
+                            console.log('音频已准备好播放');
+                        };
+                        
+                        finishAudio.play().then(() => {
+                            console.log('play() 方法调用成功');
+                        }).catch(error => {
+                            console.error('完成音效播放失败:', error);
+                            // 尝试使用 AudioContext 播放
+                            if (audioContext) {
+                                console.log('尝试使用 AudioContext 播放...');
+                                fetch('assets/finish.mp3')
+                                    .then(response => response.arrayBuffer())
+                                    .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+                                    .then(audioBuffer => {
+                                        const source = audioContext.createBufferSource();
+                                        source.buffer = audioBuffer;
+                                        source.connect(audioContext.destination);
+                                        source.onended = () => {
+                                            console.log('AudioContext 播放完毕');
+                                            resolve();
+                                        };
+                                        source.start(0);
+                                    })
+                                    .catch(e => {
+                                        console.error('AudioContext 播放失败:', e);
+                                        resolve();
+                                    });
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                }
+                
+                playAudioBlocking().then(() => {
                     completeTask();
                 });
             }
