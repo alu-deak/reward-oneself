@@ -1,4 +1,7 @@
 ![icon.png](icon.png)
+
+该项目脱胎于 https://github.com/han-studiveloper/reward-oneself-flask-legacy，全程 AI 改造，纯添加，无天然😎
+
 # 自勉RewardOneself
 **《自勉》为勤奋的人设计，鼓励用户在完成既定目标后，适当地给予自己一些奖励**
 
