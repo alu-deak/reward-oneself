@@ -109,6 +109,11 @@
         }
 
         function redeemReward(id, value){
+            const currentPoints = Storage.getPoints();
+            if(currentPoints < value){
+                alert('积分不足！当前积分为 '+currentPoints+'，需要 '+value+' 积分才能兑换。');
+                return;
+            }
             if(confirm('确定要兑换这个奖励吗？消耗 '+value+' 积分')){
                 Storage.changePoints(-value);
                 document.getElementById('rof-points').textContent = Storage.getPoints();
