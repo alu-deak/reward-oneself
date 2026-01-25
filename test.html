@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>测试localStorage</title>
+</head>
+<body>
+    <h1>localStorage 测试</h1>
+    <button onclick="addTestReward()">添加测试奖励</button>
+    <button onclick="showAllRewards()">显示所有奖励</button>
+    <button onclick="clearAll()">清除所有数据</button>
+    <pre id="output"></pre>
+    <script src="js/storage.js"></script>
+    <script>
+        Storage.initDefaults();
+        function addTestReward(){
+            Storage.addItem('rewards', {name: '测试奖励', value: 10});
+            alert('已添加测试奖励');
+        }
+        function showAllRewards(){
+            const rewards = Storage.getAll('rewards');
+            document.getElementById('output').textContent = JSON.stringify(rewards, null, 2);
+            console.log('rewards:', rewards);
+        }
+        function clearAll(){
+            localStorage.clear();
+            alert('已清除所有数据');
+        }
+    </script>
+</body>
+</html>

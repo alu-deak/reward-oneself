@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="icon" href="assets/favicon.ico">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <title>删除奖励或任务</title>
+</head>
+
+<body>
+    <h1 class="title">删除</h1>
+    <div class="container mt-4" style="max-width: 800px;">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div id="rof-remove-list"></div>
+                <div class="d-grid gap-2">
+                    <button id="rof-delete-btn" class="btn btn-danger">🗑️删除</button>
+                    <button onclick="window.location.href='index.html'" type="button" class="btn btn-secondary">🏠取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script>
+        Storage.initDefaults();
+        
+        // 获取URL参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type') || 'tasks';
+        
+        const listEl = document.getElementById('rof-remove-list');
+        const titleEl = document.querySelector('.title');
+        
+        // 设置标题
+        if(type === 'reward' || type === 'rewards'){
+            titleEl.textContent = '删除奖励';
+        } else {
+            titleEl.textContent = '删除任务';
+        }
+        
+        function renderRemove(){
+            const items = Storage.getAll(type === 'reward' || type === 'rewards' ? 'rewards' : 'tasks');
+            listEl.innerHTML = '';
+            if(items.length === 0){
+                listEl.innerHTML = '<p>暂无数据</p>';
+                return;
+            }
+            items.forEach(it => {
+                const id = it.id;
+                const div = document.createElement('div');
+                const valueText = it.value ? '(' + it.value + ')' : (it.points ? '(' + it.points + ')' : '');
+                div.innerHTML = `<label><input type="radio" name="rof_remove" value="${id}"> ${it.name || it.title || ''} ${valueText}</label>`;
+                listEl.appendChild(div);
+            });
+        }
+        
+        document.getElementById('rof-delete-btn').addEventListener('click', ()=>{
+            const sel = document.querySelector('input[name="rof_remove"]:checked');
+            if(!sel){ alert('请选择要删除的项'); return; }
+            if(confirm('确定要删除吗？')){
+                Storage.removeItemById((type === 'reward' || type === 'rewards')? 'rewards':'tasks', sel.value);
+                renderRemove();
+            }
+        });
+        
+        renderRemove();
+    </script>
+</body>
+
+</html>

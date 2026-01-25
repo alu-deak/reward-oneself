@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="icon" href="assets/favicon.ico">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <title>计时器</title>
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timer-div {
+            width: 80%;
+            height: 50%;
+            background: #3498db;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            footer {
+                height: 10%;
+                width: 100%;
+                font-size: 10px;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container mt-4 timer-div" style="max-width: 800px;">
+        <h1 class="title" id="task-name">任务</h1>
+        <b id="status">工作中</b>
+        <div id="time-display" style="font-size: 48px; margin: 20px 0;">00:00</div>
+        <p id="audio-prompt" style="color: rgb(255, 255, 0); background-color: rgba(255, 0, 0, 0.5);">🔐点击页面任意位置解锁提示音播放</p>
+        <div id="result-container" style="display: none;">
+            <h2>任务完成！</h2>
+            <p>获得积分：<span id="result-points">0</span></p>
+            <div class="d-grid gap-2">
+                <button onclick="window.location.href='index.html'" class="btn btn-primary">🏠返回主页</button>
+            </div>
+        </div>
+    </div>
+    <footer class="mt-4">
+        <p>本页面的计时器提示音是：自制手机铃声 许可:CC-BY 作者:scottchains 来源:耳聆网 https://www.ear0.com/sound/37361</p>
+        <p>本页面的完成音效是：完成音效 许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432</p>
+    </footer>
+
+    <!-- 引入 NoSleep.js -->
+    <script src="js/NoSleep.min.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        // 初始化 NoSleep
+        var noSleep = new NoSleep();
+        console.log('NoSleep 已初始化');
+
+        Storage.initDefaults();
+
+        // 获取URL参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskId = urlParams.get('taskId');
+        const points = Number(urlParams.get('points'));
+        const time = Number(urlParams.get('time'));
+        const repeat = urlParams.get('repeat') === 'true';
+
+        // 获取任务名称
+        const task = Storage.findById('tasks', taskId);
+        if(task){
+            document.getElementById('task-name').textContent = task.name;
+        }
+
+        // 初始化参数
+        const workTime = time;
+        const restRatio = Storage.getRestRatio();
+        const restTime = Math.round(workTime / restRatio);
+
+        let currentTime = workTime * 60;
+        let isWorking = true;
+        let timerInterval;
+        let audioContext;
+
+        // 用户首次点击解锁自动播放和防止休眠
+        function unlockAudio() {
+            try {
+                noSleep.enable();
+                console.log('NoSleep 已启用');
+            } catch (error) {
+                console.error('NoSleep 启动失败：', error);
+            }
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioContext.resume().then(() => {
+                console.log('音频上下文已解锁');
+                document.getElementById('audio-prompt').style.display = 'none';
+            });
+            document.body.removeEventListener('click', unlockAudio);
+        }
+        document.body.addEventListener('click', unlockAudio);
+
+        // 更新时间显示
+        function updateDisplay() {
+            const minutes = Math.floor(currentTime / 60);
+            const seconds = currentTime % 60;
+            document.getElementById('time-display').textContent =
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // 切换阶段
+        function switchPhase() {
+            isWorking = !isWorking;
+            currentTime = isWorking ? workTime * 60 : restTime * 60;
+            document.getElementById('status').textContent = isWorking ? '工作中' : '休息中';
+
+            // 休息阶段开始时播放音频
+            if (!isWorking && restTime > 0) {
+                const audio = new Audio("assets/timer.wav");
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => audio.play());
+                } else {
+                    audio.play().catch(error => {
+                        console.error('音频播放失败:', error);
+                    });
+                }
+            }
+        }
+
+        // 倒计时结束处理
+        function handleFinish() {
+            clearInterval(timerInterval);
+            if (isWorking) {
+                // 工作结束后切换到休息
+                if (restTime > 0) {
+                    switchPhase();
+                    timerInterval = setInterval(() => {
+                        currentTime--;
+                        updateDisplay();
+                        if (currentTime <= 0) handleFinish();
+                    }, 1000);
+                } else {
+                    // 无休息时间直接完成
+                    completeTask();
+                }
+            } else {
+                // 休息结束，播放完成音效
+                const finishAudio = new Audio("assets/finish.wav");
+                finishAudio.play().then(() => {
+                    completeTask();
+                }).catch(error => {
+                    console.error('完成音效播放失败:', error);
+                    completeTask();
+                });
+            }
+        }
+
+        // 完成任务
+        function completeTask() {
+            noSleep.disable();
+            console.log('NoSleep 已禁用');
+            
+            // 更新积分
+            Storage.changePoints(points);
+            
+            // 如果不是重复任务，删除任务
+            if(!repeat){
+                Storage.removeItemById('tasks', taskId);
+            }
+            
+            // 显示结果
+            document.querySelector('.timer-div > h1').style.display = 'none';
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('time-display').style.display = 'none';
+            document.getElementById('audio-prompt').style.display = 'none';
+            document.getElementById('result-container').style.display = 'block';
+            document.getElementById('result-points').textContent = points;
+        }
+
+        // 启动计时器
+        updateDisplay();
+        timerInterval = setInterval(() => {
+            currentTime--;
+            updateDisplay();
+            if (currentTime <= 0) handleFinish();
+        }, 1000);
+    </script>
+</body>
+
+</html>

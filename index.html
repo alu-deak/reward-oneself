@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="icon" href="assets/favicon.ico">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <title>奖励自己</title>
+</head>
+
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="title">欢迎回来，<span id="rof-username">Guest</span></h1>
+            <h2>现在积分是：<span id="rof-points">0</span></h2>
+        </div>
+    </div>
+    <div style="text-align: right; margin-right: 50px;">
+        <a href="settings.html">⏰休息工作比</a>
+    </div>
+    <div id="tables">
+        <table id="reward">
+            <tr class="table-header">
+                <td>
+                    <h3>奖励名称</h3>
+                </td>
+                <td>
+                    <h3>分值</h3>
+                </td>
+            </tr>
+            <tbody id="rof-rewards"></tbody>
+            <tr>
+                <td>
+                    <a href="add_reward.html">➕添加新奖励</a>
+                </td>
+                <td>
+                    <a href="remove.html?type=reward">🗑️删除奖励</a>
+                </td>
+            </tr>
+        </table>
+
+        <table id="task">
+            <tr class="table-header">
+                <td>
+                    <h3>任务名称</h3>
+                </td>
+                <td>
+                    <h3>分值</h3>
+                </td>
+                <td>
+                    <h3>所需时间</h3>
+                </td>
+                <td>
+                    <h3>优先级</h3>
+                </td>
+                <td>
+                    <h3>重复</h3>
+                </td>
+            </tr>
+            <tbody id="rof-tasks"></tbody>
+            <tr>
+                <td colspan="3">
+                    <a href="add_task.html">➕添加新任务</a>
+                </td>
+                <td colspan="2">
+                    <a href="remove.html?type=task">🗑️删除任务</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <footer class="footer">
+        <p style="text-align: center;"><a href="about.html">关于本应用</a></p>
+    </footer>
+
+    <script src="js/storage.js"></script>
+    <script>
+        Storage.initDefaults();
+        document.getElementById('rof-username').textContent = Storage.get('username', 'Guest');
+        document.getElementById('rof-points').textContent = Storage.getPoints();
+
+        function renderRewards(){
+            const tbody = document.getElementById('rof-rewards');
+            tbody.innerHTML = '';
+            const rewards = Storage.getAll('rewards');
+            rewards.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><button class="btn-link" onclick="redeemReward('${r.id}', ${r.value})">${r.name}</button></td><td>${r.value}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderTasks(){
+            const tbody = document.getElementById('rof-tasks');
+            tbody.innerHTML = '';
+            const tasks = Storage.getAll('tasks');
+            // 按优先级排序
+            tasks.sort((a, b) => {
+                const pa = a.priority === 'max' ? Infinity : Number(a.priority);
+                const pb = b.priority === 'max' ? Infinity : Number(b.priority);
+                return pb - pa;
+            });
+            tasks.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><button class="btn-link" onclick="completeTask('${t.id}', ${t.points}, ${t.time}, ${t.repeat})">${t.name}</button></td><td>${t.points}</td><td>${t.time}</td><td>${t.priority||''}</td><td>${t.repeat? '🔁':''}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function redeemReward(id, value){
+            if(confirm('确定要兑换这个奖励吗？消耗 '+value+' 积分')){
+                Storage.changePoints(-value);
+                document.getElementById('rof-points').textContent = Storage.getPoints();
+                renderRewards();
+            }
+        }
+
+        function completeTask(id, points, time, repeat){
+            if(time > 0){
+                window.location.href = 'timer.html?taskId=' + id + '&points=' + points + '&time=' + time + '&repeat=' + repeat;
+            } else {
+                if(confirm('确定要完成这个任务吗？获得 '+points+' 积分')){
+                    Storage.changePoints(points);
+                    if(!repeat){
+                        Storage.removeItemById('tasks', id);
+                    }
+                    document.getElementById('rof-points').textContent = Storage.getPoints();
+                    renderTasks();
+                }
+            }
+        }
+
+        renderRewards();
+        renderTasks();
+    </script>
+</body>
+
+</html>
