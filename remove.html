@@ -5,21 +5,31 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="assets/favicon.ico">
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+    <title>删除</title>
     <link href="css/style.css" rel="stylesheet">
-    <title>删除奖励或任务</title>
 </head>
 
 <body>
-    <h1 class="title">删除</h1>
-    <div class="container mt-4" style="max-width: 800px;">
-        <div class="card mb-4">
-            <div class="card-body">
-                <div id="rof-remove-list"></div>
-                <div class="d-grid gap-2">
-                    <button id="rof-delete-btn" class="btn btn-danger">🗑️删除</button>
-                    <button onclick="window.location.href='index.html'" type="button" class="btn btn-secondary">🏠取消</button>
+    <a href="index.html" class="back-link-fixed">
+        <i class="fas fa-home"></i>
+        <span>返回主页</span>
+    </a>
+
+    <div class="form-page">
+        <div class="form-card" style="max-width: 800px;">
+            <h1 class="form-title" id="page-title"><i class="fas fa-trash"></i> 删除</h1>
+            <div id="rof-remove-list">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                    <div class="empty-state-text">暂无数据</div>
                 </div>
+            </div>
+            <div class="form-actions">
+                <button id="rof-delete-btn" class="btn btn-danger">
+                    <i class="fas fa-trash"></i>
+                    <span>删除</span>
+                </button>
             </div>
         </div>
     </div>
@@ -28,44 +38,99 @@
     <script>
         Storage.initDefaults();
         
-        // 获取URL参数
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type') || 'tasks';
         
         const listEl = document.getElementById('rof-remove-list');
-        const titleEl = document.querySelector('.title');
+        const titleEl = document.getElementById('page-title');
         
-        // 设置标题
-        if(type === 'reward' || type === 'rewards'){
-            titleEl.textContent = '删除奖励';
+        if (type === 'reward' || type === 'rewards') {
+            titleEl.innerHTML = '<i class="fas fa-trash"></i> 删除奖励';
         } else {
-            titleEl.textContent = '删除任务';
+            titleEl.innerHTML = '<i class="fas fa-trash"></i> 删除任务';
         }
         
-        function renderRemove(){
+        function renderRemove() {
             const items = Storage.getAll(type === 'reward' || type === 'rewards' ? 'rewards' : 'tasks');
             listEl.innerHTML = '';
-            if(items.length === 0){
-                listEl.innerHTML = '<p>暂无数据</p>';
+            
+            if (items.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                        <div class="empty-state-text">暂无数据</div>
+                    </div>
+                `;
                 return;
             }
-            items.forEach(it => {
+            
+            const listHtml = items.map((it, index) => {
                 const id = it.id;
-                const div = document.createElement('div');
-                const valueText = it.value ? '(' + it.value + ')' : (it.points ? '(' + it.points + ')' : '');
-                div.innerHTML = `<label><input type="radio" name="rof_remove" value="${id}"> ${it.name || it.title || ''} ${valueText}</label>`;
-                listEl.appendChild(div);
+                const valueText = it.value ? `(${it.value}积分)` : (it.points ? `(+${it.points}分)` : '');
+                return `
+                    <label class="checkbox-item" style="animation-delay: ${0.05 * index}s">
+                        <input type="radio" name="rof_remove" value="${id}">
+                        <span>${it.name || it.title || ''} <span style="color: var(--text-muted)">${valueText}</span></span>
+                    </label>
+                `;
+            }).join('');
+            
+            listEl.innerHTML = `<div style="display: flex; flex-direction: column; gap: 8px;">${listHtml}</div>`;
+        }
+        
+        document.getElementById('rof-delete-btn').addEventListener('click', () => {
+            const sel = document.querySelector('input[name="rof_remove"]:checked');
+            if (!sel) {
+                showModal('提示', '请选择要删除的项');
+                return;
+            }
+            showConfirmModal('确认删除', '确定要删除所选项吗？此操作无法撤销。', () => {
+                Storage.removeItemById((type === 'reward' || type === 'rewards') ? 'rewards' : 'tasks', sel.value);
+                renderRemove();
+                showModal('成功', '删除成功！');
+            });
+        });
+        
+        function showModal(title, text) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3 class="modal-title">${title}</h3>
+                    <p class="modal-text">${text}</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" onclick="this.closest('.modal-overlay').remove()">确定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
             });
         }
         
-        document.getElementById('rof-delete-btn').addEventListener('click', ()=>{
-            const sel = document.querySelector('input[name="rof_remove"]:checked');
-            if(!sel){ alert('请选择要删除的项'); return; }
-            if(confirm('确定要删除吗？')){
-                Storage.removeItemById((type === 'reward' || type === 'rewards')? 'rewards':'tasks', sel.value);
-                renderRemove();
-            }
-        });
+        function showConfirmModal(title, text, onConfirm) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3 class="modal-title">${title}</h3>
+                    <p class="modal-text">${text}</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">取消</button>
+                        <button class="btn btn-danger" id="confirm-btn"><i class="fas fa-trash"></i> 删除</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+            document.getElementById('confirm-btn').addEventListener('click', () => {
+                onConfirm();
+                overlay.remove();
+            });
+        }
         
         renderRemove();
     </script>

@@ -5,84 +5,89 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="assets/favicon.ico">
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     <title>计时器</title>
-
-    <style>
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .timer-div {
-            width: 80%;
-            height: 50%;
-            background: #3498db;
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        @media (max-width: 768px) {
-            footer {
-                height: 10%;
-                width: 100%;
-                font-size: 10px;
-            }
-        }
-    </style>
-
+    <link href="css/style.css" rel="stylesheet">
 </head>
 
 <body>
-    <div class="container mt-4 timer-div" style="max-width: 800px;">
-        <h1 class="title" id="task-name">任务</h1>
-        <b id="status">工作中</b>
-        <div id="time-display" style="font-size: 48px; margin: 20px 0;">00:00</div>
-        <p id="audio-prompt" style="color: rgb(255, 255, 0); background-color: rgba(255, 0, 0, 0.5);">🔐点击页面任意位置解锁提示音播放</p>
-        <div id="result-container" style="display: none;">
-            <h2>任务完成！</h2>
-            <p>获得积分：<span id="result-points">0</span></p>
-            <div class="d-grid gap-2">
-                <button onclick="window.location.href='index.html'" class="btn btn-primary">🏠返回主页</button>
+    <a href="index.html" class="back-link-fixed">
+        <i class="fas fa-home"></i>
+        <span>返回主页</span>
+    </a>
+
+    <div class="timer-container">
+        <div class="timer-card">
+            <div class="loop-toggle">
+                <span class="loop-label"><i class="fas fa-sync-alt"></i> 循环计时</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="loop-toggle" onchange="toggleLoop()">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <h1 class="timer-title" id="task-name">任务</h1>
+            <div class="timer-status working" id="status"><i class="fas fa-hourglass-half"></i> 工作中</div>
+            <div class="timer-display" id="time-display">00:00</div>
+
+            <div class="timer-control-area" id="control-area" style="display: none;">
+                <div class="countdown-hint" id="countdown-hint" style="display: none;">
+                    <i class="fas fa-clock"></i>
+                    <span id="countdown-text">10秒后自动开始</span>
+                </div>
+                <div class="timer-hint" id="timer-hint">
+                    点击继续开始下一轮
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-primary" onclick="continueTimer()" id="continue-btn">
+                        <i class="fas fa-play"></i>
+                        <span>继续计时</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='index.html'" id="return-btn">
+                        <i class="fas fa-home"></i>
+                        <span>返回主页</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="timer-audio-prompt" id="audio-prompt">
+                <i class="fas fa-volume-mute"></i> 点击页面任意位置解锁提示音播放
+            </div>
+
+            <div class="timer-result" id="result-container" style="display: none;">
+                <h2><i class="fas fa-trophy"></i> 任务完成！</h2>
+                <div class="timer-result-points">+<span id="result-points">0</span></div>
+                <div class="form-actions">
+                    <button onclick="window.location.href='index.html'" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-home"></i>
+                        <span>返回主页</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-    <!-- 引入 NoSleep.js -->
+
     <script src="js/NoSleep.min.js"></script>
     <script src="js/storage.js"></script>
     <script>
-        // 初始化 NoSleep
         var noSleep = new NoSleep();
         console.log('NoSleep 已初始化');
 
         Storage.initDefaults();
 
-        // 获取URL参数
         const urlParams = new URLSearchParams(window.location.search);
         const taskId = urlParams.get('taskId');
         const points = Number(urlParams.get('points'));
         const time = Number(urlParams.get('time'));
         const repeat = urlParams.get('repeat') === 'true';
 
-        // 获取任务名称
+        console.log('Timer params - taskId:', taskId, 'points:', points, 'time:', time, 'repeat:', repeat);
+
         const task = Storage.findById('tasks', taskId);
-        if(task){
+        if (task) {
             document.getElementById('task-name').textContent = task.name;
         }
 
-        // 初始化参数
         const workTime = time;
         const restRatio = Storage.getRestRatio();
         const restTime = Math.round(workTime / restRatio);
@@ -90,10 +95,17 @@
         let currentTime = workTime * 60;
         let isWorking = true;
         let timerInterval;
+        let countdownInterval;
         let audioContext;
+        let audioUnlocked = false;
+        let loopEnabled = false;
+        let countdown10s = 10;
+        let isPaused = false;
 
-        // 用户首次点击解锁自动播放和防止休眠
         function unlockAudio() {
+            if (audioUnlocked) return;
+            audioUnlocked = true;
+
             try {
                 noSleep.enable();
                 console.log('NoSleep 已启用');
@@ -101,40 +113,25 @@
                 console.error('NoSleep 启动失败：', error);
             }
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            console.log('准备 resume AudioContext...');
+
             audioContext.resume().then(() => {
                 console.log('音频上下文已解锁，状态:', audioContext.state);
                 document.getElementById('audio-prompt').style.display = 'none';
-                
-                // 测试音频播放
-                console.log('创建测试音频对象...');
+
                 const testAudio = new Audio("assets/finish.mp3");
                 testAudio.volume = 0.5;
-                
+
                 testAudio.oncanplay = () => {
                     console.log('音频文件可以播放');
                 };
-                
+
                 testAudio.onerror = (e) => {
                     console.error('音频加载错误:', e);
                 };
-                
-                testAudio.onloadstart = () => {
-                    console.log('开始加载音频');
-                };
-                
-                testAudio.onloadeddata = () => {
-                    console.log('音频数据已加载');
-                };
-                
+
                 testAudio.load();
-                console.log('load() 已调用');
-                
-                // 播放测试音
-                console.log('准备播放测试音频...');
+
                 const playPromise = testAudio.play();
-                
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
                         console.log('测试音频播放成功');
@@ -143,18 +140,14 @@
                     }).catch(e => {
                         console.error('测试音频播放失败:', e);
                     });
-                } else {
-                    console.log('play() 返回 undefined');
                 }
             }).catch(e => {
                 console.error('AudioContext resume 失败:', e);
             });
-            
-            document.body.removeEventListener('click', unlockAudio);
         }
-        document.body.addEventListener('click', unlockAudio);
 
-        // 更新时间显示
+        document.body.addEventListener('click', unlockAudio, { once: true });
+
         function updateDisplay() {
             const minutes = Math.floor(currentTime / 60);
             const seconds = currentTime % 60;
@@ -162,13 +155,19 @@
                 `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // 切换阶段
         function switchPhase() {
             isWorking = !isWorking;
             currentTime = isWorking ? workTime * 60 : restTime * 60;
-            document.getElementById('status').textContent = isWorking ? '工作中' : '休息中';
 
-            // 休息阶段开始时播放音频（阻塞式）
+            const statusEl = document.getElementById('status');
+            if (isWorking) {
+                statusEl.innerHTML = '<i class="fas fa-hourglass-half"></i> 工作中';
+                statusEl.className = 'timer-status working';
+            } else {
+                statusEl.innerHTML = '<i class="fas fa-coffee"></i> 休息中';
+                statusEl.className = 'timer-status resting';
+            }
+
             if (!isWorking && restTime > 0) {
                 const audio = new Audio("assets/timer.mp3");
                 audio.play().catch(error => {
@@ -177,14 +176,119 @@
             }
         }
 
-        // 倒计时结束处理
+        function playFinishAudio(callback) {
+            const finishAudio = new Audio("assets/finish.mp3");
+            finishAudio.volume = 1.0;
+
+            finishAudio.onended = () => {
+                console.log('完成音效播放完毕');
+                if (callback) callback();
+            };
+
+            finishAudio.onerror = (e) => {
+                console.error('完成音效播放错误:', e);
+                if (callback) callback();
+            };
+
+            finishAudio.play().then(() => {
+                console.log('play() 方法调用成功');
+            }).catch(error => {
+                console.error('完成音效播放失败:', error);
+                if (audioContext) {
+                    fetch('assets/finish.mp3')
+                        .then(response => response.arrayBuffer())
+                        .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+                        .then(audioBuffer => {
+                            const source = audioContext.createBufferSource();
+                            source.buffer = audioBuffer;
+                            source.connect(audioContext.destination);
+                            source.onended = () => {
+                                console.log('AudioContext 播放完毕');
+                                if (callback) callback();
+                            };
+                            source.start(0);
+                        })
+                        .catch(e => {
+                            console.error('AudioContext 播放失败:', e);
+                            if (callback) callback();
+                        });
+                } else if (callback) {
+                    callback();
+                }
+            });
+        }
+
+        function toggleLoop() {
+            loopEnabled = document.getElementById('loop-toggle').checked;
+            console.log('循环计时开关:', loopEnabled);
+        }
+
+        function showControlArea(countdownEnabled) {
+            document.getElementById('control-area').style.display = 'block';
+            document.getElementById('timer-hint').style.display = countdownEnabled ? 'none' : 'block';
+            document.getElementById('countdown-hint').style.display = countdownEnabled ? 'block' : 'none';
+        }
+
+        function hideControlArea() {
+            document.getElementById('control-area').style.display = 'none';
+        }
+
+        function start10sCountdown() {
+            countdown10s = 10;
+            const countdownText = document.getElementById('countdown-text');
+            countdownText.textContent = `${countdown10s}秒后自动开始`;
+
+            showControlArea(true);
+
+            countdownInterval = setInterval(() => {
+                countdown10s--;
+                if (countdown10s > 0) {
+                    countdownText.textContent = `${countdown10s}秒后自动开始`;
+                } else {
+                    clearInterval(countdownInterval);
+                    console.log('10秒倒计时结束，自动开始新周期');
+                    startNewCycle();
+                }
+            }, 1000);
+        }
+
+        function continueTimer() {
+            console.log('用户点击继续计时');
+            clearInterval(countdownInterval);
+            if (loopEnabled) {
+                startNewCycle();
+            } else {
+                completeTask();
+            }
+        }
+
+        function startNewCycle() {
+            hideControlArea();
+            isWorking = true;
+            currentTime = workTime * 60;
+
+            const statusEl = document.getElementById('status');
+            statusEl.innerHTML = '<i class="fas fa-hourglass-half"></i> 工作中';
+            statusEl.className = 'timer-status working';
+
+            updateDisplay();
+            timerInterval = setInterval(() => {
+                currentTime--;
+                updateDisplay();
+                if (currentTime <= 0) handleFinish();
+            }, 1000);
+        }
+
+        function returnHome() {
+            noSleep.disable();
+        }
+
         function handleFinish() {
             clearInterval(timerInterval);
             console.log('handleFinish 被调用 - 当前阶段: ' + (isWorking ? '工作' : '休息'));
-            
+
             if (isWorking) {
                 console.log('工作阶段结束，休息时间: ' + restTime + ' 分钟');
-                // 工作结束后切换到休息
                 if (restTime > 0) {
                     console.log('切换到休息阶段');
                     switchPhase();
@@ -194,117 +298,48 @@
                         if (currentTime <= 0) handleFinish();
                     }, 1000);
                 } else {
-                    // 无休息时间直接完成
-                    console.log('无休息时间，直接完成任务');
-                    
-                    // 播放完成音效
-                    console.log('准备播放完成音效...');
-                    const finishAudio = new Audio("assets/finish.mp3");
-                    finishAudio.volume = 1.0;
-                    
-                    function playAudioBlocking() {
-                        return new Promise((resolve, reject) => {
-                            console.log('开始播放完成音效...');
-                            
-                            finishAudio.onended = () => {
-                                console.log('完成音效播放完毕');
-                                resolve();
-                            };
-                            
-                            finishAudio.onerror = (e) => {
-                                console.error('完成音效播放错误:', e);
-                                resolve();
-                            };
-                            
-                            finishAudio.play().then(() => {
-                                console.log('play() 方法调用成功');
-                            }).catch(error => {
-                                console.error('完成音效播放失败:', error);
-                                resolve();
-                            });
+                    console.log('无休息时间，添加积分');
+                    Storage.changePoints(points);
+                    if (loopEnabled) {
+                        console.log('循环开启，开始10秒倒计时');
+                        playFinishAudio(() => {
+                            start10sCountdown();
+                        });
+                    } else {
+                        console.log('循环关闭，显示控制区域');
+                        playFinishAudio(() => {
+                            showControlArea(false);
                         });
                     }
-                    
-                    playAudioBlocking().then(() => {
-                        completeTask();
-                    });
                 }
             } else {
-                // 休息结束，播放完成音效（阻塞式）
-                console.log('准备播放完成音效...');
-                const finishAudio = new Audio("assets/finish.mp3");
-                finishAudio.volume = 1.0;
-                
-                function playAudioBlocking() {
-                    return new Promise((resolve, reject) => {
-                        console.log('开始播放完成音效...');
-                        
-                        finishAudio.onended = () => {
-                            console.log('完成音效播放完毕');
-                            resolve();
-                        };
-                        
-                        finishAudio.onerror = (e) => {
-                            console.error('完成音效播放错误:', e);
-                            resolve(); // 即使失败也继续
-                        };
-                        
-                        finishAudio.oncanplay = () => {
-                            console.log('音频已准备好播放');
-                        };
-                        
-                        finishAudio.play().then(() => {
-                            console.log('play() 方法调用成功');
-                        }).catch(error => {
-                            console.error('完成音效播放失败:', error);
-                            // 尝试使用 AudioContext 播放
-                            if (audioContext) {
-                                console.log('尝试使用 AudioContext 播放...');
-                                fetch('assets/finish.mp3')
-                                    .then(response => response.arrayBuffer())
-                                    .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-                                    .then(audioBuffer => {
-                                        const source = audioContext.createBufferSource();
-                                        source.buffer = audioBuffer;
-                                        source.connect(audioContext.destination);
-                                        source.onended = () => {
-                                            console.log('AudioContext 播放完毕');
-                                            resolve();
-                                        };
-                                        source.start(0);
-                                    })
-                                    .catch(e => {
-                                        console.error('AudioContext 播放失败:', e);
-                                        resolve();
-                                    });
-                            } else {
-                                resolve();
-                            }
-                        });
+                console.log('休息阶段结束，添加积分');
+                Storage.changePoints(points);
+                if (loopEnabled) {
+                    console.log('循环开启，开始10秒倒计时');
+                    playFinishAudio(() => {
+                        start10sCountdown();
+                    });
+                } else {
+                    console.log('循环关闭，显示控制区域');
+                    playFinishAudio(() => {
+                        showControlArea(false);
                     });
                 }
-                
-                playAudioBlocking().then(() => {
-                    completeTask();
-                });
             }
         }
 
-        // 完成任务
         function completeTask() {
             noSleep.disable();
             console.log('NoSleep 已禁用');
-            
-            // 更新积分
+
             Storage.changePoints(points);
-            
-            // 如果不是重复任务，删除任务
-            if(!repeat){
+
+            if (!repeat) {
                 Storage.removeItemById('tasks', taskId);
             }
-            
-            // 显示结果
-            document.querySelector('.timer-div > h1').style.display = 'none';
+
+            document.querySelector('.timer-title').style.display = 'none';
             document.getElementById('status').style.display = 'none';
             document.getElementById('time-display').style.display = 'none';
             document.getElementById('audio-prompt').style.display = 'none';
@@ -312,7 +347,6 @@
             document.getElementById('result-points').textContent = points;
         }
 
-        // 启动计时器
         updateDisplay();
         timerInterval = setInterval(() => {
             currentTime--;
@@ -320,6 +354,173 @@
             if (currentTime <= 0) handleFinish();
         }, 1000);
     </script>
+
+    <style>
+        .timer-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 32px 24px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            animation: scaleIn 0.4s ease-out;
+        }
+
+        .loop-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .loop-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: all var(--transition-fast);
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: all var(--transition-fast);
+            border-radius: 50%;
+            box-shadow: var(--shadow-sm);
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-yellow);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .timer-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .timer-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            transition: all var(--transition-fast);
+        }
+
+        .timer-status.working {
+            background: rgba(255, 215, 0, 0.15);
+            color: #b8860b;
+        }
+
+        .timer-status.resting {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+        }
+
+        .timer-display {
+            font-size: 72px;
+            font-weight: 300;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 4px;
+            margin-bottom: 24px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .timer-control-area {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .countdown-hint {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .timer-hint {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .timer-result {
+            padding-top: 24px;
+        }
+
+        .timer-result h2 {
+            font-size: 24px;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .timer-result-points {
+            font-size: 48px;
+            font-weight: 600;
+            color: var(--primary-yellow-dark);
+            margin-bottom: 32px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+    </style>
 </body>
 
 </html>

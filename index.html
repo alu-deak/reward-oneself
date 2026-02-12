@@ -5,135 +5,259 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="assets/favicon.ico">
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     <title>奖励自己</title>
+    <link href="css/style.css" rel="stylesheet">
 </head>
 
 <body>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h1 class="title">欢迎回来，<span id="rof-username">Guest</span></h1>
-            <h2>现在积分是：<span id="rof-points">0</span></h2>
-        </div>
-    </div>
-    <div style="text-align: right; margin-right: 50px;">
-        <a href="settings.html">⏰休息工作比</a>
-    </div>
-    <div id="tables">
-        <table id="reward">
-            <tr class="table-header">
-                <td>
-                    <h3>奖励名称</h3>
-                </td>
-                <td>
-                    <h3>分值</h3>
-                </td>
-            </tr>
-            <tbody id="rof-rewards"></tbody>
-            <tr>
-                <td>
-                    <a href="add_reward.html">➕添加新奖励</a>
-                </td>
-                <td>
-                    <a href="remove.html?type=reward">🗑️删除奖励</a>
-                </td>
-            </tr>
-        </table>
+    <div class="container">
+        <header class="header-section">
+            <div class="user-info">
+                <div>
+                    <div class="user-greeting">欢迎回来</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <div class="points-display">
+                    <span class="points-label">当前积分</span>
+                    <span class="points-value" id="rof-points">0</span>
+                </div>
+                <a href="settings.html" class="nav-link">
+                    <i class="fas fa-clock"></i>
+                    <span>设置</span>
+                </a>
+            </div>
+        </header>
 
-        <table id="task">
-            <tr class="table-header">
-                <td>
-                    <h3>任务名称</h3>
-                </td>
-                <td>
-                    <h3>分值</h3>
-                </td>
-                <td>
-                    <h3>所需时间</h3>
-                </td>
-                <td>
-                    <h3>优先级</h3>
-                </td>
-                <td>
-                    <h3>重复</h3>
-                </td>
-            </tr>
-            <tbody id="rof-tasks"></tbody>
-            <tr>
-                <td colspan="3">
-                    <a href="add_task.html">➕添加新任务</a>
-                </td>
-                <td colspan="2">
-                    <a href="remove.html?type=task">🗑️删除任务</a>
-                </td>
-            </tr>
-        </table>
+        <main class="main-content">
+            <div class="card" id="reward-card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-gift"></i> 奖励列表</h2>
+                    <div class="card-actions">
+                        <a href="add_reward.html" class="btn btn-icon" title="添加奖励"><i class="fas fa-plus"></i></a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="data-list" id="rof-rewards">
+                        <li class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-gift"></i></div>
+                            <div class="empty-state-text">暂无奖励，快去添加吧！</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="add_reward.html" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i>
+                        <span>添加新奖励</span>
+                    </a>
+                    <a href="remove.html?type=reward" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i>
+                        <span>删除奖励</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card" id="task-card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-list-alt"></i> 任务列表</h2>
+                    <div class="card-actions">
+                        <a href="add_task.html" class="btn btn-icon" title="添加任务"><i class="fas fa-plus"></i></a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="data-list" id="rof-tasks">
+                        <li class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-list-alt"></i></div>
+                            <div class="empty-state-text">暂无任务，快去添加吧！</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="add_task.html" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i>
+                        <span>添加新任务</span>
+                    </a>
+                    <a href="remove.html?type=task" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i>
+                        <span>删除任务</span>
+                    </a>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <a href="about.html">关于本应用</a>
+        </footer>
     </div>
-    <footer class="footer">
-        <p style="text-align: center;"><a href="about.html">关于本应用</a></p>
-    </footer>
 
     <script src="js/storage.js"></script>
     <script>
         Storage.initDefaults();
-        document.getElementById('rof-username').textContent = Storage.get('username', 'Guest');
+        const usernameEl = document.getElementById('rof-username');
+        if (usernameEl) {
+            usernameEl.textContent = Storage.get('username', 'Guest');
+        }
         document.getElementById('rof-points').textContent = Storage.getPoints();
 
-        function renderRewards(){
+        function animatePointsChange(element, newValue) {
+            element.classList.add('pulse');
+            element.textContent = newValue;
+            setTimeout(() => {
+                element.classList.remove('pulse');
+            }, 300);
+        }
+
+        function renderRewards() {
             const tbody = document.getElementById('rof-rewards');
             tbody.innerHTML = '';
             const rewards = Storage.getAll('rewards');
-            rewards.forEach(r => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><button class="btn-link" onclick="redeemReward('${r.id}', ${r.value})">${r.name}</button></td><td>${r.value}</td>`;
-                tbody.appendChild(tr);
+            console.log('加载到奖励数据:', rewards);
+            
+            if (rewards.length === 0) {
+                tbody.innerHTML = `
+                    <li class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-gift"></i></div>
+                        <div class="empty-state-text">暂无奖励，快去添加吧！</div>
+                    </li>
+                `;
+                return;
+            }
+            
+            rewards.forEach((r, index) => {
+                const li = document.createElement('li');
+                li.className = 'data-item';
+                li.style.animationDelay = `${0.1 + index * 0.05}s`;
+                li.innerHTML = `
+                    <span class="data-name" onclick="redeemReward('${r.id}', ${r.value})">${r.name}</span>
+                    <div class="data-meta">
+                        <span class="data-value">${r.value} 积分</span>
+                    </div>
+                `;
+                tbody.appendChild(li);
             });
         }
 
-        function renderTasks(){
+        function renderTasks() {
             const tbody = document.getElementById('rof-tasks');
             tbody.innerHTML = '';
             const tasks = Storage.getAll('tasks');
-            // 按优先级排序
+            
+            if (tasks.length === 0) {
+                tbody.innerHTML = `
+                    <li class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-list-alt"></i></div>
+                        <div class="empty-state-text">暂无任务，快去添加吧！</div>
+                    </li>
+                `;
+                return;
+            }
+            
             tasks.sort((a, b) => {
                 const pa = a.priority === 'max' ? Infinity : Number(a.priority);
                 const pb = b.priority === 'max' ? Infinity : Number(b.priority);
                 return pb - pa;
             });
-            tasks.forEach(t => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><button class="btn-link" onclick="completeTask('${t.id}', ${t.points}, ${t.time}, ${t.repeat})">${t.name}</button></td><td>${t.points}</td><td>${t.time}</td><td>${t.priority||''}</td><td>${t.repeat? '🔁':''}</td>`;
-                tbody.appendChild(tr);
+            
+            tasks.forEach((t, index) => {
+                const li = document.createElement('li');
+                li.className = 'data-item';
+                li.style.animationDelay = `${0.1 + index * 0.05}s`;
+                
+                const timeText = t.time > 0 ? `${t.time}分钟` : '即时';
+                const repeatBadge = t.repeat ? '<span class="badge badge-gray"><i class="fas fa-sync"></i> 重复</span>' : '';
+                
+                li.innerHTML = `
+                    <span class="data-name" onclick="completeTask('${t.id}', ${t.points}, ${t.time}, ${t.repeat})">${t.name}</span>
+                    <div class="data-meta">
+                        <span class="data-value">+${t.points}</span>
+                        <span class="badge badge-gray">${timeText}</span>
+                        ${repeatBadge}
+                    </div>
+                `;
+                tbody.appendChild(li);
             });
         }
 
-        function redeemReward(id, value){
+        function redeemReward(id, value) {
             const currentPoints = Storage.getPoints();
-            if(currentPoints < value){
-                alert('积分不足！当前积分为 '+currentPoints+'，需要 '+value+' 积分才能兑换。');
+            if (currentPoints < value) {
+                showModal('积分不足', `当前积分为 ${currentPoints}，需要 ${value} 积分才能兑换。`);
                 return;
             }
-            if(confirm('确定要兑换这个奖励吗？消耗 '+value+' 积分')){
+            showConfirmModal('兑换确认', `确定要兑换 "${getRewardName(id)}" 吗？消耗 ${value} 积分`, () => {
                 Storage.changePoints(-value);
-                document.getElementById('rof-points').textContent = Storage.getPoints();
+                animatePointsChange(document.getElementById('rof-points'), Storage.getPoints());
                 renderRewards();
+            });
+        }
+
+        function completeTask(id, points, time, repeat) {
+            if (time > 0) {
+                window.location.href = 'timer.html?taskId=' + id + '&points=' + points + '&time=' + time + '&repeat=' + repeat;
+            } else {
+                showConfirmModal('完成任务', `确定要完成 "${getTaskName(id)}" 吗？获得 ${points} 积分`, () => {
+                    Storage.changePoints(points);
+                    if (!repeat) {
+                        Storage.removeItemById('tasks', id);
+                    }
+                    animatePointsChange(document.getElementById('rof-points'), Storage.getPoints());
+                    renderTasks();
+                });
             }
         }
 
-        function completeTask(id, points, time, repeat){
-            if(time > 0){
-                window.location.href = 'timer.html?taskId=' + id + '&points=' + points + '&time=' + time + '&repeat=' + repeat;
-            } else {
-                if(confirm('确定要完成这个任务吗？获得 '+points+' 积分')){
-                    Storage.changePoints(points);
-                    if(!repeat){
-                        Storage.removeItemById('tasks', id);
-                    }
-                    document.getElementById('rof-points').textContent = Storage.getPoints();
-                    renderTasks();
-                }
-            }
+        function getRewardName(id) {
+            const rewards = Storage.getAll('rewards');
+            const reward = rewards.find(r => r.id === id);
+            return reward ? reward.name : '';
+        }
+
+        function getTaskName(id) {
+            const tasks = Storage.getAll('tasks');
+            const task = tasks.find(t => t.id === id);
+            return task ? task.name : '';
+        }
+
+        function showModal(title, text) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3 class="modal-title">${title}</h3>
+                    <p class="modal-text">${text}</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" onclick="this.closest('.modal-overlay').remove()">确定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+
+        function showConfirmModal(title, text, onConfirm) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3 class="modal-title">${title}</h3>
+                    <p class="modal-text">${text}</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">取消</button>
+                        <button class="btn btn-primary" id="confirm-btn">确定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+            document.getElementById('confirm-btn').addEventListener('click', () => {
+                onConfirm();
+                overlay.remove();
+            });
         }
 
         renderRewards();

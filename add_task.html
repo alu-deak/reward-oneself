@@ -5,121 +5,120 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="assets/favicon.ico">
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     <title>添加新任务</title>
+    <link href="css/style.css" rel="stylesheet">
 </head>
 
 <body>
-    <h1 class="title">添加新任务</h1>
-    <form name="taskForm" onsubmit="return handleAddTask(event)" class="container mt-4" style="max-width: 600px;">
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="name">名称</label>
-                    <input class="form-control" id="name" name="name" required type="text">
+    <a href="index.html" class="back-link-fixed">
+        <i class="fas fa-home"></i>
+        <span>返回主页</span>
+    </a>
+
+    <div class="form-page">
+        <div class="form-card">
+            <h1 class="form-title"><i class="fas fa-list-alt"></i> 添加新任务</h1>
+            <form name="taskForm" onsubmit="return handleAddTask(event)">
+                <div class="form-group">
+                    <label class="form-label" for="name">任务名称</label>
+                    <input class="form-control" id="name" name="name" placeholder="输入任务名称" required type="text">
                 </div>
-                <div class="mb-3">
-                    <label for="points">分值</label>
-                    <input class="form-control" id="points" min="1" name="points" required type="number">
+                <div class="form-group">
+                    <label class="form-label" for="points">分值</label>
+                    <input class="form-control" id="points" min="1" name="points" placeholder="输入分值" required type="number">
                 </div>
-                <div class="mb-3">
-                    <label for="time">所需时间（分钟）</label>
-                    <input class="form-control" id="time" type="number" name="time" min="0" required>
+                <div class="form-group">
+                    <label class="form-label" for="time">所需时间（分钟）</label>
+                    <input class="form-control" id="time" min="0" name="time" placeholder="输入所需时间（0表示即时完成）" required type="number">
                 </div>
-            </div>
-        </div>
 
-        <div class="card mb-3">
-            <div class="card-body">
-                <fieldset class="border-0">
-                    <legend>重要性</legend>
-                    <div>
-                        <input id="most_important" type="radio" name="importance" value="max" required>
-                        <label for="most_important">特别重要</label>
-                    </div>
-                    <div>
-                        <input id="very_important" type="radio" name="importance" value="4">
-                        <label for="very_important">很重要</label>
-                    </div>
-                    <div>
-                        <input id="important" type="radio" name="importance" value="3">
-                        <label for="important">重要</label>
-                    </div>
-                    <div>
-                        <input id="not_important" type="radio" name="importance" value="0">
-                        <label for="not_important">不重要</label>
+                <fieldset class="fieldset">
+                    <legend class="legend">重要性</legend>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input name="importance" type="radio" value="max" required>
+                            <span><i class="fas fa-star"></i> 特别重要</span>
+                        </label>
+                        <label class="radio-item">
+                            <input name="importance" type="radio" value="4">
+                            <span>很重要</span>
+                        </label>
+                        <label class="radio-item">
+                            <input name="importance" type="radio" value="3">
+                            <span>重要</span>
+                        </label>
+                        <label class="radio-item">
+                            <input name="importance" type="radio" value="0">
+                            <span>不重要</span>
+                        </label>
                     </div>
                 </fieldset>
-            </div>
-        </div>
 
-        <div class="card mb-3">
-            <div class="card-body">
-                <fieldset class="border-0">
-                    <legend>价值</legend>
-                    <div>
-                        <input id="most_value" type="radio" name="value" value="3" required>
-                        <label for="most_value">高价值</label>
-                    </div>
-                    <div>
-                        <input id="value" type="radio" name="value" value="2" required>
-                        <label for="value">中价值</label>
-                    </div>
-                    <div>
-                        <input id="not_value" type="radio" name="value" value="1" required>
-                        <label for="not_value">低价值</label>
+                <fieldset class="fieldset">
+                    <legend class="legend">价值</legend>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input name="value" type="radio" value="3" required>
+                            <span><i class="fas fa-gem"></i> 高价值</span>
+                        </label>
+                        <label class="radio-item">
+                            <input name="value" type="radio" value="2">
+                            <span>中价值</span>
+                        </label>
+                        <label class="radio-item">
+                            <input name="value" type="radio" value="1">
+                            <span>低价值</span>
+                        </label>
                     </div>
                 </fieldset>
-            </div>
-        </div>
 
-        <div class="card mb-3">
-            <div class="card-body">
-                <fieldset class="border-0">
-                    <legend>紧急</legend>
-                    <div>
-                        <input id="most_urgent" type="radio" name="urgent" value="3" required>
-                        <label for="most_urgent">很紧急</label>
-                    </div>
-                    <div>
-                        <input id="urgent" type="radio" name="urgent" value="2" required>
-                        <label for="urgent">紧急</label>
-                    </div>
-                    <div>
-                        <input id="not_urgent" type="radio" name="urgent" value="1" required>
-                        <label for="not_urgent">不紧急</label>
+                <fieldset class="fieldset">
+                    <legend class="legend">紧急度</legend>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input name="urgent" type="radio" value="3" required>
+                            <span><i class="fas fa-fire"></i> 很紧急</span>
+                        </label>
+                        <label class="radio-item">
+                            <input name="urgent" type="radio" value="2">
+                            <span>紧急</span>
+                        </label>
+                        <label class="radio-item">
+                            <input name="urgent" type="radio" value="1">
+                            <span>不紧急</span>
+                        </label>
                     </div>
                 </fieldset>
-            </div>
-        </div>
 
-        <div class="card mb-3">
-            <div class="card-body">
-                <fieldset class="border-0">
-                    <legend>重复</legend>
-                    <div>
-                        <input id="most_repeat" type="radio" name="repeat" value="True" required>
-                        <label for="most_repeat">重复</label>
-                    </div>
-                    <div>
-                        <input id="not_repeat" type="radio" name="repeat" value="False" required>
-                        <label for="not_repeat">不重复</label>
+                <fieldset class="fieldset">
+                    <legend class="legend">重复</legend>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input name="repeat" type="radio" value="True" required>
+                            <span><i class="fas fa-sync"></i> 重复</span>
+                        </label>
+                        <label class="radio-item">
+                            <input name="repeat" type="radio" value="False">
+                            <span>不重复</span>
+                        </label>
                     </div>
                 </fieldset>
-            </div>
-        </div>
 
-        <button type="submit" class="btn btn-primary w-100">
-            💾提交
-        </button>
-    </form>
-    <p><a href="index.html">🏠返回主页</a></p>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        <span>保存任务</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="js/storage.js"></script>
     <script>
         Storage.initDefaults();
-        function handleAddTask(e){
+        function handleAddTask(e) {
             e.preventDefault();
             const form = document.forms['taskForm'];
             const name = form['name'].value.trim();
@@ -130,34 +129,33 @@
             const urgent = form['urgent'] ? form['urgent'].value : null;
             const repeat = form['repeat'] ? (form['repeat'].value === 'True') : false;
             
-            if(!name){
-                alert('请输入任务名称');
+            if (!name) {
+                showModal('提示', '请输入任务名称');
                 return false;
             }
-            if(points <= 0){
-                alert('请输入有效的积分值（大于0的数字）');
+            if (points <= 0) {
+                showModal('提示', '请输入有效的积分值（大于0的数字）');
                 return false;
             }
-            if(time < 0){
-                alert('请输入有效的时间（大于等于0的数字）');
+            if (time < 0) {
+                showModal('提示', '请输入有效的时间（大于等于0的数字）');
                 return false;
             }
-            if(!importance){
-                alert('请选择任务重要性');
+            if (!importance) {
+                showModal('提示', '请选择任务重要性');
                 return false;
             }
-            if(!value){
-                alert('请选择任务价值');
+            if (!value) {
+                showModal('提示', '请选择任务价值');
                 return false;
             }
-            if(!urgent){
-                alert('请选择任务紧急程度');
+            if (!urgent) {
+                showModal('提示', '请选择任务紧急程度');
                 return false;
             }
             
-            // 计算优先级：重要性 × 4 + 紧急度 × 2 + 价值 × 3 - 时间 ÷ 10
             let priority;
-            if(importance === 'max'){
+            if (importance === 'max') {
                 priority = 'max';
             } else {
                 priority = Number(importance) * 4 + Number(urgent) * 2 + Number(value) * 3 - Math.round(time / 10);
@@ -174,8 +172,35 @@
                 priority: priority
             };
             Storage.addItem('tasks', task);
-            window.location.href = 'index.html';
+            showModal('成功', '任务添加成功！', () => {
+                window.location.href = 'index.html';
+            });
             return false;
+        }
+
+        function showModal(title, text, onClose) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3 class="modal-title">${title}</h3>
+                    <p class="modal-text">${text}</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" id="modal-ok-btn">确定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            document.getElementById('modal-ok-btn').addEventListener('click', () => {
+                overlay.remove();
+                if (onClose) onClose();
+            });
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                    if (onClose) onClose();
+                }
+            });
         }
     </script>
 </body>

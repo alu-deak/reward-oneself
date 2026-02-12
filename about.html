@@ -5,43 +5,82 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="assets/favicon.ico">
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     <title>关于本应用</title>
+    <link href="css/style.css" rel="stylesheet">
 </head>
 
 <body>
-    <div class="container mt-4" style="max-width: 800px;">
-        <div class="card mb-4">
-            <div class="card-body">
-                <p class="text-muted small">该项目脱胎于 <a href="https://github.com/han-studiveloper/reward-oneself-flask-legacy" target="_blank">https://github.com/han-studiveloper/reward-oneself-flask-legacy</a>，全程 AI 改造，纯添加，无天然😎</p>
-                
-                <h1 class="title">关于本应用</h1>
-                <img src="./icon.png" alt="icon" style="max-width:80px;" class="mb-3">
-                <h2>自勉 RewardOneself</h2>
-                <p><strong>《自勉》为勤奋的人设计，鼓励用户在完成既定目标后，适当地给予自己一些奖励</strong></p>
+    <a href="index.html" class="back-link-fixed">
+        <i class="fas fa-home"></i>
+        <span>返回主页</span>
+    </a>
 
-                <h3>核心亮点</h3>
-                <ul>
-                    <li><strong>任务管理</strong>：用户可以列出自己的任务或目标</li>
-                    <li><strong>积分激励</strong>：每完成一项任务，用户便可以在表格记录并获取相应的积分</li>
-                    <li><strong>奖励兑换</strong>：一旦积累了足够的积分，用户就可以选择兑换之前设定好的奖励</li>
-                    <li><strong>优先级计算</strong>：创新的优先级算法，基于数值运算，比传统四象限分类法更精确</li>
-                </ul>
+    <div class="form-page">
+        <div class="form-card" style="max-width: 800px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <img src="./icon.png" alt="icon" style="width: 80px; height: 80px; margin-bottom: 16px; border-radius: 16px; box-shadow: var(--shadow-md);">
+                <h1 class="form-title" style="margin-bottom: 8px;"><i class="fas fa-star"></i> 自勉 RewardOneself</h1>
+                <p style="color: var(--text-secondary); font-size: 14px;">
+                    <a href="https://github.com/han-studiveloper/reward-oneself-flask-legacy" target="_blank" style="color: var(--primary-yellow-dark);">
+                        基于原项目改造
+                    </a>
+                </p>
+            </div>
 
-                <h3>优先级计算规则</h3>
-                <p>每个任务的优先级是根据以下几个因素综合计算得出的：</p>
-                <ul>
-                    <li><strong>重要性</strong>：范围为0到5。其中，5表示非常重要（对应无穷大）</li>
-                    <li><strong>紧急度</strong>：范围为1到3</li>
-                    <li><strong>价值</strong>：范围为1到3</li>
-                    <li><strong>时间</strong>：完成任务所需的时间，单位为分钟</li>
-                </ul>
+            <div style="background: var(--bg-light); border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px;">
+                <p style="text-align: center; color: var(--text-secondary); margin: 0;">
+                    <strong>《自勉》为勤奋的人设计</strong><br>
+                    鼓励用户在完成既定目标后，适当地给予自己一些奖励
+                </p>
+            </div>
 
-                <h4>优先级的计算公式如下</h4>
-                <p><strong>优先级 = 重要性 × 4 + 紧急度 × 2 + 价值 × 3 - 时间 ÷ 10</strong></p>
-                <p>特别地，如果任务被标记为“非常重要”，则其优先级为无穷大（即最高优先级）。</p>
-                <p><a href="index.html">🏠返回主页</a></p>
+            <h3 style="color: var(--text-primary); margin-bottom: 16px; font-size: 18px;"><i class="fas fa-lightbulb"></i> 核心亮点</h3>
+            <ul style="list-style: none; padding: 0; margin-bottom: 24px;">
+                <li style="padding: 12px 16px; background: var(--bg-light); border-radius: var(--radius-sm); margin-bottom: 8px;">
+                    <strong style="color: var(--primary-yellow-dark);"><i class="fas fa-list-alt"></i> 任务管理：</strong>
+                    <span style="color: var(--text-secondary);">用户可以列出自己的任务或目标</span>
+                </li>
+                <li style="padding: 12px 16px; background: var(--bg-light); border-radius: var(--radius-sm); margin-bottom: 8px;">
+                    <strong style="color: var(--primary-yellow-dark);"><i class="fas fa-star"></i> 积分激励：</strong>
+                    <span style="color: var(--text-secondary);">每完成一项任务，用户便可以在表格记录并获取相应的积分</span>
+                </li>
+                <li style="padding: 12px 16px; background: var(--bg-light); border-radius: var(--radius-sm); margin-bottom: 8px;">
+                    <strong style="color: var(--primary-yellow-dark);"><i class="fas fa-gift"></i> 奖励兑换：</strong>
+                    <span style="color: var(--text-secondary);">一旦积累了足够的积分，用户就可以选择兑换之前设定好的奖励</span>
+                </li>
+                <li style="padding: 12px 16px; background: var(--bg-light); border-radius: var(--radius-sm); margin-bottom: 8px;">
+                    <strong style="color: var(--primary-yellow-dark);"><i class="fas fa-chart-bar"></i> 优先级计算：</strong>
+                    <span style="color: var(--text-secondary);">创新的优先级算法，基于数值运算，比传统四象限分类法更精确</span>
+                </li>
+            </ul>
+
+            <h3 style="color: var(--text-primary); margin-bottom: 16px; font-size: 18px;"><i class="fas fa-calculator"></i> 优先级计算规则</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                每个任务的优先级是根据以下几个因素综合计算得出的：
+            </p>
+            <ul style="list-style: none; padding: 0; margin-bottom: 24px;">
+                <li style="padding: 8px 12px; border-left: 3px solid var(--primary-yellow); margin-bottom: 8px;">
+                    <strong>重要性：</strong>范围为 0 到 5。其中，5 表示非常重要（对应无穷大）
+                </li>
+                <li style="padding: 8px 12px; border-left: 3px solid var(--primary-yellow); margin-bottom: 8px;">
+                    <strong>紧急度：</strong>范围为 1 到 3
+                </li>
+                <li style="padding: 8px 12px; border-left: 3px solid var(--primary-yellow); margin-bottom: 8px;">
+                    <strong>价值：</strong>范围为 1 到 3
+                </li>
+                <li style="padding: 8px 12px; border-left: 3px solid var(--primary-yellow);">
+                    <strong>时间：</strong>完成任务所需的时间，单位为分钟
+                </li>
+            </ul>
+
+            <div style="background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--primary-yellow-light) 100%); border-radius: var(--radius-md); padding: 20px; text-align: center; margin-bottom: 24px;">
+                <p style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);">
+                    优先级 = 重要性 × 4 + 紧急度 × 2 + 价值 × 3 - 时间 ÷ 10
+                </p>
+                <p style="margin: 8px 0 0 0; font-size: 14px; color: var(--text-secondary);">
+                    特别地，如果任务被标记为「非常重要」，则其优先级为无穷大（即最高优先级）
+                </p>
             </div>
         </div>
     </div>

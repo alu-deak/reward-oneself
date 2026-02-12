@@ -1,72 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
-    <title>设置休息工作时间比例</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="assets/favicon.ico">
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+    <title>设置</title>
     <link href="css/style.css" rel="stylesheet">
-    <script>
-        function validateForm() {
-            const input = document.getElementById('rest_time_to_work_ratio').value;
-            const ratio = parseInt(input, 10);
-            if (isNaN(ratio) || ratio < 3 || ratio > 10) {
-                let message;
-                if (ratio > 10) {
-                    message = '啊？！Σ(っ °Д °;)っ这的要这样吗？这样会累坏的！ヽ(*。>Д<)o゜';
-                } else if (ratio < 3 && ratio > 0) {
-                    message = '哦？！居然设置这么低的值ˋ( ° ▽、° )。放松固然重要，但也要切记"劳逸结合"哦~';
-                } else if (ratio <= 0) {
-                    alert('请输入大于0的数值。');
-                    return false;
-                } else {
-                    message = '请输入3到10之间的正整数。';
-                }
-                const confirmSubmit = confirm(message + '\n是否继续提交？');
-                return confirmSubmit;
-            }
-            return true;
-        }
-    </script>
 </head>
+
 <body>
-    <div class="container">
-        <div class="card mb-4">
-            <div class="card-body">
-                <h1 class="title">设置休息与工作时间比例</h1>
-                <b>休息时间的计算公式为：休息时间 = 工作时间 ÷ 休息时间与工作时间比例</b>
-                <p>默认值为5（标准番茄钟比例），推荐范围为4~7，容许最小值为1</p>
-                <form onsubmit="return handleSaveSettings(event)" class="container mt-4" style="max-width: 600px;">
-                    <label for="rest_time_to_work_ratio">休息时间与工作时间比例（正整数）:</label>
-                    <input class="form-control" type="number" id="rest_time_to_work_ratio" name="rest_time_to_work_ratio" required>
-                    <button type="submit" class="btn btn-success">💾保存设置</button>
-                </form>
-                <p><a href="index.html">🏠返回主页</a></p>
-            </div>
+    <a href="index.html" class="back-link-fixed">
+        <i class="fas fa-home"></i>
+        <span>返回主页</span>
+    </a>
+
+    <div class="form-page">
+        <div class="form-card">
+            <h1 class="form-title"><i class="fas fa-clock"></i> 设置休息与工作时间比例</h1>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+                休息时间 = 工作时间 ÷ 比例<br>
+                <span style="font-size: 14px; color: var(--text-muted);">推荐范围 4~7，默认值为 5（标准番茄钟比例）</span>
+            </p>
+            <form onsubmit="return handleSaveSettings(event)">
+                <div class="form-group">
+                    <label class="form-label" for="rest_time_to_work_ratio">休息时间与工作时间比例</label>
+                    <input class="form-control" id="rest_time_to_work_ratio" min="1" required type="number">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        <span>保存设置</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script src="js/storage.js"></script>
     <script>
         Storage.initDefaults();
-        // 设置当前值
         const currentRatio = Storage.getRestRatio();
         document.getElementById('rest_time_to_work_ratio').value = currentRatio;
 
-        function handleSaveSettings(e){
-            e.preventDefault();
-            if(!validateForm()) return false;
-            const ratio = parseInt(document.getElementById('rest_time_to_work_ratio').value, 10);
-            if(ratio <= 0){
-                alert('比例必须为正整数');
+        function validateForm() {
+            const input = document.getElementById('rest_time_to_work_ratio').value;
+            const ratio = parseInt(input, 10);
+            if (isNaN(ratio) || ratio < 1) {
+                showModal('提示', '请输入大于0的数值。');
                 return false;
             }
-            Storage.setRestRatio(ratio);
-            alert('设置已保存！');
-            window.location.href = 'index.html';
+            if (ratio > 10) {
+                return showConfirm('⚠️ 确认提交', '啊？！设置这么高的比例真的好吗？这样休息时间会很长哦！确定要继续吗？');
+            }
+            if (ratio < 3 && ratio > 0) {
+                return showConfirm('⚠️ 确认提交', '哦？！设置这么低的值，放松很重要，但也要注意劳逸结合哦~确定要继续吗？');
+            }
+            return true;
+        }
+
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            const ratio = parseInt(document.getElementById('rest_time_to_work_ratio').value, 10);
+            if (isNaN(ratio) || ratio <= 0) {
+                showModal('提示', '比例必须为大于0的整数');
+                return false;
+            }
+
+            if (ratio > 10) {
+                showConfirm('⚠️ 确认提交', '啊？！设置这么高的比例真的好吗？这样休息时间会很长哦！确定要继续吗？', () => {
+                    saveRatio(ratio);
+                });
+                return false;
+            }
+            if (ratio < 3 && ratio > 0) {
+                showConfirm('⚠️ 确认提交', '哦？！设置这么低的值，放松很重要，但也要注意劳逸结合哦~确定要继续吗？', () => {
+                    saveRatio(ratio);
+                });
+                return false;
+            }
+
+            saveRatio(ratio);
             return false;
+        }
+
+        function saveRatio(ratio) {
+            Storage.setRestRatio(ratio);
+            showModal('成功', '设置已保存！', () => {
+                window.location.href = 'index.html';
+            });
+        }
+
+        function showModal(title, text, onClose) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3 class="modal-title">${title}</h3>
+                    <p class="modal-text">${text}</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" id="modal-ok-btn">确定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            document.getElementById('modal-ok-btn').addEventListener('click', () => {
+                overlay.remove();
+                if (onClose) onClose();
+            });
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                    if (onClose) onClose();
+                }
+            });
+        }
+
+        function showConfirm(title, text, onConfirm) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3 class="modal-title">${title}</h3>
+                    <p class="modal-text">${text}</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" id="modal-cancel-btn">取消</button>
+                        <button class="btn btn-primary" id="modal-confirm-btn">确定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            document.getElementById('modal-cancel-btn').addEventListener('click', () => {
+                overlay.remove();
+            });
+            document.getElementById('modal-confirm-btn').addEventListener('click', () => {
+                overlay.remove();
+                if (onConfirm) onConfirm();
+            });
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
         }
     </script>
 </body>
+
 </html>

@@ -5,54 +5,91 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="assets/favicon.ico">
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     <title>添加新奖励</title>
+    <link href="css/style.css" rel="stylesheet">
 </head>
 
 <body>
-    <h1 class="title">添加新奖励</h1>
-    <form name="rewardForm" onsubmit="return handleAddReward(event)" class="container mt-4" style="max-width: 600px;">
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="name">名称</label>
-                    <input class="form-control" id="name" name="name" required type="text">
+    <a href="index.html" class="back-link-fixed">
+        <i class="fas fa-home"></i>
+        <span>返回主页</span>
+    </a>
+
+    <div class="form-page">
+        <div class="form-card">
+            <h1 class="form-title"><i class="fas fa-gift"></i> 添加新奖励</h1>
+            <form name="rewardForm" onsubmit="return handleAddReward(event)">
+                <div class="form-group">
+                    <label class="form-label" for="name">奖励名称</label>
+                    <input class="form-control" id="name" name="name" placeholder="输入奖励名称" required type="text">
                 </div>
-                <div class="mb-3">
-                    <label for="points">分值</label>
-                    <input class="form-control" id="points" min="1" name="points" required type="number">
+                <div class="form-group">
+                    <label class="form-label" for="points">所需积分</label>
+                    <input class="form-control" id="points" min="1" name="points" placeholder="输入所需积分" required type="number">
                 </div>
-            </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        <span>保存奖励</span>
+                    </button>
+                </div>
+            </form>
         </div>
-        <button type="submit" class="btn btn-primary w-100">
-            💾提交
-        </button>
-    </form>
-    <p><a href="index.html">🏠返回主页</a></p>
+    </div>
 
     <script src="js/storage.js"></script>
     <script>
         Storage.initDefaults();
-        function handleAddReward(e){
+        function handleAddReward(e) {
             e.preventDefault();
             const form = document.forms['rewardForm'];
             const name = form['name'].value.trim();
             const points = Number(form['points'].value);
             
-            if(!name){
-                alert('请输入奖励名称');
+            if (!name) {
+                showModal('提示', '请输入奖励名称');
                 return false;
             }
-            if(points <= 0){
-                alert('请输入有效的积分值（大于0的数字）');
+            if (points <= 0) {
+                showModal('提示', '请输入有效的积分值（大于0的数字）');
                 return false;
             }
             
             const reward = { name: name, value: points };
             Storage.addItem('rewards', reward);
-            window.location.href = 'index.html';
+            showModal('成功', '奖励添加成功！', () => {
+                window.location.href = 'index.html';
+            });
             return false;
+        }
+
+        function showModal(title, text, onClose) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3 class="modal-title">${title}</h3>
+                    <p class="modal-text">${text}</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" id="modal-ok-btn">确定</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            const okBtn = document.getElementById('modal-ok-btn');
+            if (okBtn) {
+                okBtn.addEventListener('click', () => {
+                    overlay.remove();
+                    if (onClose) onClose();
+                });
+            }
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                    if (onClose) onClose();
+                }
+            });
         }
     </script>
 </body>
