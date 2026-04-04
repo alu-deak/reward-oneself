@@ -1,5 +1,11 @@
 {
   "appId": "com.github.aludeak.rewardoneself",
   "appName": "reward-oneself",
-  "webDir": "www"
+  "webDir": "www",
+  "ios": {
+    "iconPath": "www/icon.png"
+  },
+  "android": {
+    "iconPath": "www/icon.png"
+  }
 }
