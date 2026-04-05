@@ -1,0 +1,54 @@
+name: Build Android APK on Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build Android APK
+        run: |
+          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          cd android
+          ./gradlew assembleRelease
+
+      - name: Get version from release tag
+        id: get-version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Rename APK file
+        run: |
+          mkdir -p artifacts
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk artifacts/reward-oneself-${{ env.VERSION }}.apk
+
+      - name: Upload APK to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/reward-oneself-${{ env.VERSION }}.apk
+          name: Release ${{ env.VERSION }}
+          tag_name: ${{ github.ref_name }}
