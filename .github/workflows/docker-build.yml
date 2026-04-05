@@ -1,0 +1,52 @@
+name: Android Build and Test
+
+on:
+  release:
+    types: [created]
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t reward-oneself-builder .
+
+      - name: Run build in Docker container
+        run: |
+          docker run --name reward-oneself-build reward-oneself-builder
+          docker cp reward-oneself-build:/app/android/app/build/outputs/apk/debug/app-debug.apk .
+          docker rm reward-oneself-build
+
+      - name: Test build output
+        run: |
+          if [ -f "app-debug.apk" ]; then
+            echo "APK file generated successfully"
+            echo "APK size: $(du -h app-debug.apk)"
+          else
+            echo "APK file not found"
+            exit 1
+          fi
+
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reward-oneself-apk
+          path: app-debug.apk
+
+      - name: Build and push Docker image
+        if: github.event_name == 'release'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/reward-oneself-builder:${{ github.event.release.tag_name }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/reward-oneself-builder:latest
+          secrets:
+            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
