@@ -1,5 +1,7 @@
 ![Stone Badge](https://stone.professorlee.work/api/stone/alu-deak/reward-oneself)
 
+网络上说说就得了，现实中谁不想急头白脸的在readme里养一只石墩子做宠物（
+
 ![icon.png](www/icon.png)
 
 该项目脱胎于 https://github.com/han-studiveloper/reward-oneself-flask-legacy，全程 AI 改造，纯添加，无天然😎
